@@ -400,12 +400,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8ba16e5c3a8ae448bd316e69e538b16, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MinRollRotation: -10
-  MaxRollRotation: 10
-  MinPitchRotation: -20
-  MaxPitchRotation: 20
-  MinSpeed: -2
-  MaxSpeed: 10
+  Drone: {fileID: 0}
+  ForwardBackward: 5
+  Tilt: 5
+  FlyLeftRight: 5
+  UpDown: 5
 --- !u!54 &1540701883
 Rigidbody:
   m_ObjectHideFlags: 0
