@@ -1,97 +1,78 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class BeeController : MonoBehaviour
 {
-    void Start(){
-        rb = GetComponent<Rigidbody>();
-    }
-
     Rigidbody rb;
+    public Transform GFXTransform;
 
-    void Update()
-    {
-        //UpdatePitchYawRoll();
-        UpdateDirectionMovement();
-        UpdateLookDirection();
-        UpdateCamera();
+    void Awake(){
+        rb = GetComponent<Rigidbody>();
+
+        bc = new BeeControls();
     }
 
-    public float MinRollRotation = -10f;
-    public float MaxRollRotation = 10f;
-    float currentRoll = 0f;
-    public float MinPitchRotation = -20f;
-    public float MaxPitchRotation = 20f;
-    float currentPitch = 0f;
-
-    public float MinSpeed = -1f;
-    public float MaxSpeed = 1f;
-    public float LRSpeed = 1f;
-    public float UDSpeed = 1f;
-    float currentSpeed = 0f;
-
-    void UpdatePitchYawRoll()
+    private void OnEnable()
     {
-        currentPitch = Mathf.Clamp(currentPitch += Input.GetAxis("Vertical"), MinPitchRotation, MaxPitchRotation);
-        currentRoll = Mathf.Clamp(currentRoll += Input.GetAxis("Horizontal"), MinRollRotation, MaxRollRotation);
-
-        transform.rotation = Quaternion.Euler(currentPitch, 0.0f, -currentRoll);
+        bc.Enable();
     }
 
-    void UpdateDirectionMovement()
+    private void OnDisable()
     {
-        if (Input.GetKey(KeyCode.W))
-        {
-            currentSpeed = MaxSpeed;
-        }
-        else if (Input.GetKey(KeyCode.S))
-        {
-            currentSpeed = MinSpeed;
-        }
-        else
-        {
-            currentSpeed = 0f;
-        }
-
-        transform.Translate(Vector3.forward * currentSpeed * Time.deltaTime);
-
-        if (Input.GetKey(KeyCode.A))
-        {
-            transform.Translate(Vector3.left * LRSpeed * Time.deltaTime);
-        }
-        if (Input.GetKey(KeyCode.D))
-        {
-            transform.Translate(Vector3.right * LRSpeed * Time.deltaTime);
-        }
-
-        if (Input.GetKey(KeyCode.Space))
-        {
-            transform.Translate(Vector3.up * UDSpeed * Time.deltaTime);
-        }
-        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.C))
-        {
-            transform.Translate(Vector3.down * UDSpeed * Time.deltaTime);
-        }        
+        bc.Disable();
     }
 
-    void UpdateLookDirection()
+    public float MinMaxPitch = 30f;
+    public float YawPower = 4f;
+    public float MinMaxRoll = 30f;
+    public float UDSpeed = 5f;
+    public float FBSpeed = 5f;
+    public float LRSpeed = 5f;
+
+    private float yaw, finalPitch, finalYaw, finalRoll;
+    public float LerpSpeed = 2f;
+
+    private BeeControls bc;
+
+    void FixedUpdate()
     {
-        if (Input.GetAxis("Mouse X") != 0f)
-        {
-            transform.Rotate(0f, Input.GetAxis("Mouse X"), 0f);
-        }
-        if (Input.GetAxis("Mouse Y") != 0f)
-        {
-            transform.Rotate(Input.GetAxis("Mouse Y"), 0f, 0f);
-        }
+        HandlePower();
+        HandleRotation();
+        HandleGFX();
     }
 
-    void UpdateCamera()
+    void HandlePower()
     {
-        Vector3 moveCamTo = transform.position - transform.forward * 10f + Vector3.up * 5f;
-        float bias = 0.96f;
-        Camera.main.transform.position = Camera.main.transform.position * bias + moveCamTo * (1f - bias);
-        Camera.main.transform.LookAt(transform.position + transform.forward * 30f);
+        Vector3 UDForce = transform.up * (( rb.mass * Physics.gravity.magnitude) + (bc.Bee.Power.ReadValue<float>()) * UDSpeed);
+        rb.AddForce(UDForce, ForceMode.Force);
+
+        Vector3 FBForce = transform.forward * (bc.Bee.Cyclic.ReadValue<Vector2>().y * FBSpeed);
+        rb.AddForce(FBForce, ForceMode.Force);
+
+        Vector3 LRForce = transform.right * (bc.Bee.Cyclic.ReadValue<Vector2>().x * LRSpeed);
+        rb.AddForce(LRForce, ForceMode.Force);
+    }
+
+    void HandleRotation()
+    {
+        yaw += bc.Bee.Pedals.ReadValue<float>() * YawPower;
+        finalYaw = Mathf.Lerp(finalYaw, yaw, Time.deltaTime * LerpSpeed);
+
+        Quaternion rot = Quaternion.Euler(0f, finalYaw, 0f);
+        rb.MoveRotation(rot);
+    }
+
+    void HandleGFX()
+    {
+        float pitch = bc.Bee.Cyclic.ReadValue<Vector2>().y * MinMaxPitch;
+        float roll = bc.Bee.Cyclic.ReadValue<Vector2>().x * MinMaxRoll;
+
+        finalPitch = Mathf.Lerp(finalPitch, pitch, Time.deltaTime * LerpSpeed);
+        finalRoll = Mathf.Lerp(finalRoll, roll, Time.deltaTime * LerpSpeed);
+
+        Quaternion rot = Quaternion.Euler(finalPitch, finalYaw, -finalRoll);
+        GFXTransform.rotation = rot;
     }
 }
