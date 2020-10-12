@@ -41,6 +41,14 @@ public class @BeeControls : IInputActionCollection, IDisposable
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """"
+                },
+                {
+                    ""name"": ""Land"",
+                    ""type"": ""Button"",
+                    ""id"": ""bb57d1d3-b2d4-4b75-9379-3ca062fd45ed"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
                 }
             ],
             ""bindings"": [
@@ -285,6 +293,28 @@ public class @BeeControls : IInputActionCollection, IDisposable
                     ""action"": ""Power"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""2889f85d-f71b-4171-b530-376d8a981f84"",
+                    ""path"": ""<Keyboard>/space"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Land"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""152e698d-923e-413d-9314-7d5addbb8e54"",
+                    ""path"": ""<Gamepad>/buttonSouth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Land"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -296,6 +326,7 @@ public class @BeeControls : IInputActionCollection, IDisposable
         m_Bee_Cyclic = m_Bee.FindAction("Cyclic", throwIfNotFound: true);
         m_Bee_Pedals = m_Bee.FindAction("Pedals", throwIfNotFound: true);
         m_Bee_Power = m_Bee.FindAction("Power", throwIfNotFound: true);
+        m_Bee_Land = m_Bee.FindAction("Land", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -348,6 +379,7 @@ public class @BeeControls : IInputActionCollection, IDisposable
     private readonly InputAction m_Bee_Cyclic;
     private readonly InputAction m_Bee_Pedals;
     private readonly InputAction m_Bee_Power;
+    private readonly InputAction m_Bee_Land;
     public struct BeeActions
     {
         private @BeeControls m_Wrapper;
@@ -355,6 +387,7 @@ public class @BeeControls : IInputActionCollection, IDisposable
         public InputAction @Cyclic => m_Wrapper.m_Bee_Cyclic;
         public InputAction @Pedals => m_Wrapper.m_Bee_Pedals;
         public InputAction @Power => m_Wrapper.m_Bee_Power;
+        public InputAction @Land => m_Wrapper.m_Bee_Land;
         public InputActionMap Get() { return m_Wrapper.m_Bee; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -373,6 +406,9 @@ public class @BeeControls : IInputActionCollection, IDisposable
                 @Power.started -= m_Wrapper.m_BeeActionsCallbackInterface.OnPower;
                 @Power.performed -= m_Wrapper.m_BeeActionsCallbackInterface.OnPower;
                 @Power.canceled -= m_Wrapper.m_BeeActionsCallbackInterface.OnPower;
+                @Land.started -= m_Wrapper.m_BeeActionsCallbackInterface.OnLand;
+                @Land.performed -= m_Wrapper.m_BeeActionsCallbackInterface.OnLand;
+                @Land.canceled -= m_Wrapper.m_BeeActionsCallbackInterface.OnLand;
             }
             m_Wrapper.m_BeeActionsCallbackInterface = instance;
             if (instance != null)
@@ -386,6 +422,9 @@ public class @BeeControls : IInputActionCollection, IDisposable
                 @Power.started += instance.OnPower;
                 @Power.performed += instance.OnPower;
                 @Power.canceled += instance.OnPower;
+                @Land.started += instance.OnLand;
+                @Land.performed += instance.OnLand;
+                @Land.canceled += instance.OnLand;
             }
         }
     }
@@ -395,5 +434,6 @@ public class @BeeControls : IInputActionCollection, IDisposable
         void OnCyclic(InputAction.CallbackContext context);
         void OnPedals(InputAction.CallbackContext context);
         void OnPower(InputAction.CallbackContext context);
+        void OnLand(InputAction.CallbackContext context);
     }
 }
